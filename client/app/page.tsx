@@ -11,28 +11,27 @@ export default function Home() {
   return (
     <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
       <div className="inline-block max-w-xl text-center justify-center">
-        <span className={title()}>Make&nbsp;</span>
-        <span className={title({ color: "violet" })}>beautiful&nbsp;</span>
+        <span className={title()}>Jupyter Notebook&nbsp;</span>
+        <span className={title({ color: "violet" })}>Viewer&nbsp;</span>
         <br />
         <span className={title()}>
-          websites regardless of your design experience.
+          with AI Assistant
         </span>
         <div className={subtitle({ class: "mt-4" })}>
-          Beautiful, fast and modern React UI library.
+          View and interact with Jupyter notebooks in your browser.
         </div>
       </div>
 
       <div className="flex gap-3">
         <Link
-          isExternal
           className={buttonStyles({
             color: "primary",
             radius: "full",
             variant: "shadow",
           })}
-          href={siteConfig.links.docs}
+          href="/ipynb"
         >
-          Documentation
+          Open Notebook Viewer
         </Link>
         <Link
           isExternal
@@ -47,7 +46,7 @@ export default function Home() {
       <div className="mt-8">
         <Snippet hideCopyButton hideSymbol variant="bordered">
           <span>
-            Get started by editing <Code color="primary">app/page.tsx</Code>
+            Try the sample notebook at <Code color="primary">/ipynb</Code>
           </span>
         </Snippet>
       </div>
