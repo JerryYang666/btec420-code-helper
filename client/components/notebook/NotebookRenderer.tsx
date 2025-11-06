@@ -52,7 +52,7 @@ export const NotebookRenderer = ({ notebookPath }: NotebookRendererProps) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center min-h-screen p-4">
         <Spinner size="lg" label="Loading notebook..." />
       </div>
     );
@@ -82,8 +82,8 @@ export const NotebookRenderer = ({ notebookPath }: NotebookRendererProps) => {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="p-4 pb-8">
+      <div className="max-w-4xl">
         {notebook.cells.map((cell, index) => {
           if (cell.cell_type === "markdown") {
             return <MarkdownCell key={index} source={cell.source} />;
