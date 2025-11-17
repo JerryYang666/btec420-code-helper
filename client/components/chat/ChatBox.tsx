@@ -21,33 +21,37 @@ interface Message {
 interface ChatBoxProps {
   notebookData: NotebookData | null;
   selectedCellIndex: number | null;
+  notebookId: string;
   cellsBeforeCount?: number;
   cellsAfterCount?: number;
 }
 
-// Local storage key
-const STORAGE_KEY = "btec420-chat-history";
+// Local storage key base
+const STORAGE_KEY_BASE = "btec420-chat-history";
+
+// Helper function to get storage key for a specific notebook
+const getStorageKey = (notebookId: string) => `${STORAGE_KEY_BASE}-${notebookId}`;
 
 // Helper functions for localStorage
-const saveToLocalStorage = (messages: Message[], selectedCellIndex: number | null) => {
+const saveToLocalStorage = (notebookId: string, messages: Message[], selectedCellIndex: number | null) => {
   try {
     const data = {
       messages,
       selectedCellIndex,
       timestamp: new Date().toISOString(),
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(getStorageKey(notebookId), JSON.stringify(data));
   } catch (error) {
     console.error("Failed to save to localStorage:", error);
   }
 };
 
-const loadFromLocalStorage = (): {
+const loadFromLocalStorage = (notebookId: string): {
   messages: Message[];
   selectedCellIndex: number | null;
 } | null => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(getStorageKey(notebookId));
     if (!stored) return null;
     
     const data = JSON.parse(stored);
@@ -63,9 +67,9 @@ const loadFromLocalStorage = (): {
   }
 };
 
-const clearLocalStorage = () => {
+const clearLocalStorage = (notebookId: string) => {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(getStorageKey(notebookId));
   } catch (error) {
     console.error("Failed to clear localStorage:", error);
   }
@@ -74,6 +78,7 @@ const clearLocalStorage = () => {
 export const ChatBox = ({ 
   notebookData, 
   selectedCellIndex,
+  notebookId,
   cellsBeforeCount = 2,
   cellsAfterCount = 2 
 }: ChatBoxProps) => {
@@ -98,16 +103,16 @@ export const ChatBox = ({
   // Save to localStorage whenever messages change
   useEffect(() => {
     if (messages.length > 0) {
-      saveToLocalStorage(messages, selectedCellIndex);
+      saveToLocalStorage(notebookId, messages, selectedCellIndex);
     }
-  }, [messages, selectedCellIndex]);
+  }, [messages, selectedCellIndex, notebookId]);
 
   // Load from localStorage or analyze on mount
   useEffect(() => {
     if (hasAnalyzed || !notebookData) return;
     
     // Try to load from localStorage first
-    const stored = loadFromLocalStorage();
+    const stored = loadFromLocalStorage(notebookId);
     if (stored && stored.messages.length > 0) {
       // Restore state from localStorage
       setMessages(stored.messages);
@@ -117,7 +122,7 @@ export const ChatBox = ({
       setHasAnalyzed(true);
       analyzeNotebook();
     }
-  }, [notebookData, hasAnalyzed]);
+  }, [notebookData, hasAnalyzed, notebookId]);
 
   const analyzeNotebook = async () => {
     if (!notebookData) return;
@@ -353,7 +358,7 @@ export const ChatBox = ({
   };
 
   const handleReset = () => {
-    clearLocalStorage();
+    clearLocalStorage(notebookId);
     setMessages([]);
     setHasAnalyzed(false);
   };

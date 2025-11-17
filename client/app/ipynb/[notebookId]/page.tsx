@@ -63,6 +63,7 @@ export default function NotebookPage({
             <ChatBox 
               notebookData={notebookData}
               selectedCellIndex={selectedCellIndex}
+              notebookId={notebookId}
               cellsBeforeCount={cellsBeforeCount}
               cellsAfterCount={cellsAfterCount}
             />
