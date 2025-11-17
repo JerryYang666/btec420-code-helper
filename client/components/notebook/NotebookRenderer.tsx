@@ -6,6 +6,36 @@ import { Spinner } from "@heroui/spinner";
 import { MarkdownCell } from "./MarkdownCell";
 import { CodeCell } from "./CodeCell";
 
+// Utility function to extract incorrect cells with context
+export function extractIncorrectCells(
+  notebook: NotebookData,
+  cellsBeforeCount: number = 2,
+  cellsAfterCount: number = 2
+) {
+  const incorrectCells: Array<{
+    incorrectCell: NotebookCell;
+    cellIndex: number;
+    beforeCells: NotebookCell[];
+    afterCells: NotebookCell[];
+  }> = [];
+
+  notebook.cells.forEach((cell, index) => {
+    if (cell.metadata?.is_incorrect === true) {
+      const beforeStart = Math.max(0, index - cellsBeforeCount);
+      const afterEnd = Math.min(notebook.cells.length, index + cellsAfterCount + 1);
+      
+      incorrectCells.push({
+        incorrectCell: cell,
+        cellIndex: index,
+        beforeCells: notebook.cells.slice(beforeStart, index),
+        afterCells: notebook.cells.slice(index + 1, afterEnd),
+      });
+    }
+  });
+
+  return incorrectCells;
+}
+
 interface NotebookCell {
   cell_type: "markdown" | "code" | "raw";
   source: string[];
@@ -22,9 +52,17 @@ interface NotebookData {
 
 interface NotebookRendererProps {
   notebookPath: string;
+  onNotebookLoaded?: (notebook: NotebookData) => void;
+  onCellSelect?: (cellIndex: number) => void;
+  selectedCellIndex?: number | null;
 }
 
-export const NotebookRenderer = ({ notebookPath }: NotebookRendererProps) => {
+export const NotebookRenderer = ({ 
+  notebookPath, 
+  onNotebookLoaded,
+  onCellSelect,
+  selectedCellIndex 
+}: NotebookRendererProps) => {
   const [notebook, setNotebook] = useState<NotebookData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +78,9 @@ export const NotebookRenderer = ({ notebookPath }: NotebookRendererProps) => {
         const data = await response.json();
         setNotebook(data);
         setError(null);
+        if (onNotebookLoaded) {
+          onNotebookLoaded(data);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load notebook");
       } finally {
@@ -86,13 +127,31 @@ export const NotebookRenderer = ({ notebookPath }: NotebookRendererProps) => {
       <div className="max-w-4xl">
         {notebook.cells.map((cell, index) => {
           if (cell.cell_type === "markdown") {
-            return <MarkdownCell key={index} source={cell.source} />;
+            return (
+              <MarkdownCell 
+                key={index} 
+                source={cell.source}
+                isSelected={selectedCellIndex === index}
+                onClick={() => {
+                  if (onCellSelect) {
+                    onCellSelect(index);
+                  }
+                }}
+              />
+            );
           } else if (cell.cell_type === "code") {
             return (
               <CodeCell
                 key={index}
                 source={cell.source}
                 executionCount={cell.execution_count}
+                metadata={cell.metadata}
+                isSelected={selectedCellIndex === index}
+                onClick={() => {
+                  if (onCellSelect) {
+                    onCellSelect(index);
+                  }
+                }}
               />
             );
           }

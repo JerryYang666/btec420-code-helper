@@ -12,12 +12,21 @@ interface CodeCellProps {
   source: string[];
   language?: string;
   executionCount?: number | null;
+  metadata?: {
+    is_incorrect?: boolean;
+    [key: string]: any;
+  };
+  isSelected?: boolean;
+  onClick?: () => void;
 }
 
 export const CodeCell = ({
   source,
   language = "python",
   executionCount,
+  metadata,
+  isSelected = false,
+  onClick,
 }: CodeCellProps) => {
   const [code, setCode] = useState("");
 
@@ -30,8 +39,21 @@ export const CodeCell = ({
     return Prism.highlight(code, Prism.languages[language] || Prism.languages.python, language);
   };
 
+  const isIncorrect = metadata?.is_incorrect === true;
+  const isClickable = !!onClick;
+
   return (
-    <Card className="mb-4">
+    <Card 
+      className={`w-full mb-4 transition-all ${
+        isSelected 
+          ? "border-4 border-primary shadow-lg" 
+          : isIncorrect 
+          ? "border-2 border-danger" 
+          : ""
+      } ${isClickable ? "cursor-pointer hover:shadow-md" : ""}`}
+      isPressable={isClickable}
+      onPress={onClick}
+    >
       <CardHeader className="flex gap-3">
         <Chip color="primary" variant="flat" size="sm">
           {executionCount !== null && executionCount !== undefined
@@ -39,6 +61,16 @@ export const CodeCell = ({
             : "[ ]"}
         </Chip>
         <span className="text-sm text-default-500">{language}</span>
+        {isIncorrect && (
+          <Chip color="danger" variant="flat" size="sm">
+            Incorrect
+          </Chip>
+        )}
+        {isSelected && (
+          <Chip color="primary" variant="solid" size="sm">
+            Selected
+          </Chip>
+        )}
       </CardHeader>
       <CardBody>
         <div className="font-mono text-sm">
